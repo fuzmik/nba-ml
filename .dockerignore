@@ -1,0 +1,11 @@
+Logs/
+Personal_Tests/
+Screenshots/
+Tests/
+.git/
+ColabNotebook.ipynb
+.gitignore
+docker-compose.yml
+Dockerfile
+Dockerfile.*
+
