@@ -5,7 +5,8 @@ Tests/
 .git/
 ColabNotebook.ipynb
 .gitignore
-docker-compose.yml
+docker-compose.*
 Dockerfile
 Dockerfile.*
 
+Models/Trained-Model-*
