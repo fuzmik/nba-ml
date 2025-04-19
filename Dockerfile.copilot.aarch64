@@ -1,0 +1,55 @@
+# syntax=docker/dockerfile:1
+
+# Use python:3.10-slim for better compatibility with TensorFlow and smaller image size
+FROM python:3.10-slim
+
+# Environment variables for Python configuration
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Set working directory
+WORKDIR /app
+
+# Add a non-root user for security
+ARG UID=1000
+RUN adduser \
+    --disabled-password \
+    --gecos "" \
+    --home "/nonexistent" \
+    --shell "/sbin/nologin" \
+    --no-create-home \
+    --uid "${UID}" \
+    appuser && \
+    chown -R appuser:appuser /app
+
+# Install system dependencies and clean up
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libffi-dev \
+    libhdf5-dev && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Copy and install Python dependencies
+COPY requirements.txt /tmp/
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir gunicorn && \
+    pip install --no-cache-dir -r /tmp/requirements.txt && \
+    rm -rf /root/.cache
+
+# Copy application files
+COPY . /app
+
+RUN chown -R appuser:appuser /app
+#RUN touch /app/logs/gunicorn-access.log && touch /app/logs/gunicorn-error.log
+
+# Switch to non-root user
+USER appuser
+
+# Expose the application port
+EXPOSE 8800
+
+# Set working directory for Flask app
+WORKDIR /app/Flask
+
+# Start the Gunicorn server
+CMD ["gunicorn", "-w", "2", "app:app", "--bind=0.0.0.0:8800"]
